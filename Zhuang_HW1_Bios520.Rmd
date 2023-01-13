@@ -1,0 +1,61 @@
+---
+title: "BIOS 520 HW 1"
+author: "Cathy Zhuang"
+date: "2023-01-13"
+output:
+  html_document: default
+  word_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("C:/Users/Cathy/Desktop")
+library(kableExtra)
+library(dplyr)
+library(readxl)
+
+captopril <- read_excel("captopril.xls")
+captopril$diffs <- captopril$SBP_WK1 - captopril$SBP_WK0
+
+```
+
+Summarize and graph the data to show the differences between the 2 
+treatments.
+
+```{r}
+boxplot(diffs ~ GROUP, data = captopril, main = "Differences in Blood Pressure after One Week of Treatment")
+
+
+captopril %>%                               # Summary by group using dplyr
+  group_by(GROUP) %>% 
+  summarize(min_diff = min(diffs),
+            q1 = quantile(diffs, 0.25),
+            median = median(diffs),
+            mean = mean(diffs),
+            q3 = quantile(diffs, 0.75),
+            max = max(diffs),
+            std_dev = sd(diffs)) %>% 
+  kbl(caption = "Summary Statistics of Differences Between the 2 Treatments") %>%
+  kable_classic_2(full_width = F) 
+```
+Perform a statistical test and write 1-2 sentences on the conclusion and interpretation. INCLUDE in canvas submission: One word document including your graph, analysis and brief conclusion.
+
+The statistical test I will perform is a two-sample t test with an alpha of 0.05. First, I will conduct an F test to compare variances:
+
+```{r}
+var.test(diffs ~ GROUP, data = captopril) # F test to compare variances
+```
+Since we fail to reject the hypothesis that the true ratio of variances is not equal to 1, we will assume equal variances for the t test.
+
+```{r}
+t.test(diffs ~ GROUP, data = captopril, var.equal = TRUE)
+```
+From the two-sample t-test with an alpha of 0.05, since our p-value of 0.08592 is larger than alpha, we conclude that the mean change in systolic blood pressure is not different between the captopril group and the placebo group (p=0.0852, 95% CI: -17.19, 1.28 mmHg). The intervention was not effective in reducing systolic blood pressure.
+
+
+
+
